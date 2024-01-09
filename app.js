@@ -48,10 +48,12 @@ io.on("connection", (socket) => {
 
       // Emitir la respuesta del LLM al cliente
       const llmResponse = response.data.messages.data[0].content[0].text.value;
+      const routine = response.data.routine;
 
       io.emit("message", {
         user: "Quer Assistant",
         message: llmResponse,
+        routine,
       });
 
       console.log("Respuesta del LLM enviada al cliente");
@@ -120,23 +122,22 @@ app.post("/newMessage", async (req, res) => {
     let visionRes;
     let imagesCategories = [];
     let content = "";
+
     if (images.base64.length > 0) {
       // modo asistente experto en clasificar imagenes de elementos de calistenia y recomendar rutinas
       visionRes = await handleSendImages(images);
       imagesCategories = await handleClassifyQuestion(visionRes, images);
 
       content = `Hola, el usuario a enviado imagenes, la intención es detectar elementos de calistenia y recomendar una rutina,
-                este fue el mensaje que envio el usuario: ${message}. Un modelo de clasificación de imagenes de elementos de calistenia ha
-                 respondio lo siguiente: ${JSON.stringify(
-                   visionRes
-                 )} y asi fueron clasificadas las imagenes: imagesCategories: ${JSON.stringify(
-        imagesCategories
-      )}
-      Dame posibles rutinas de calistenia para hacer en base a los elementos descubiertos en las imagenes.
-      recuerda que debes no debes hacer suposiciones sobre los valores que deben enviarse a las funciones,
-      solo debes enviar los valores que se te piden, en este caso, las categorias de las imagenes.
-      handleRoutineGenerator es una función que recibe un array de objetos con las categorias de las imagenes y retorna un array de objetos con las rutinas de calistenia.
-      `;
+                este fue el mensaje que envio el usuario: ${message}. 
+                Un modelo de clasificación de imagenes de elementos de calistenia ha respondio lo siguiente: 
+                ${JSON.stringify(visionRes)} 
+                y asi fueron clasificadas las imagenes: imagesCategories: 
+                ${JSON.stringify(imagesCategories)}
+                Dame posibles rutinas de calistenia para hacer en base a los elementos descubiertos en las imagenes.
+                IMPORTANTE: NO debes hacer suposiciones sobre los valores que deben enviarse a las funciones,
+                solo debes enviar los valores que se te piden, en este caso, las categorias de las imagenes.
+                handleRoutineGenerator es el nombre de la función que debes invocar para generar la rutina.`;
     } else {
       // modo asistente
       content = message;
@@ -158,17 +159,17 @@ app.post("/newMessage", async (req, res) => {
     );
     console.log(`/newMessage: Ejecución iniciada con ID: ${response.data.id}`);
 
-    const messages = await handleResponseInBackground(
+    const assistantRes = await handleResponseInBackground(
       thread_id,
       response.data.id
     );
 
-    console.log("/newMessage: messages", messages);
+    console.log("/newMessage: assistantRes", assistantRes);
 
     console.log("/newMessage: Respuesta procesada en segundo plano");
     res
       .status(200)
-      .json({ messages: messages.response, routine: messages.routine });
+      .json({ messages: assistantRes.response, routine: assistantRes.routine });
   } catch (error) {
     console.error(
       "/newMessage: Error en el chat:",
