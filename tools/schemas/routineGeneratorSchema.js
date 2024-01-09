@@ -2,19 +2,8 @@ const routineGeneratorSchema = {
   type: "function",
   function: {
     name: "handleRoutineGenerator",
-    description: `Se encarga de generar la rutina de entrenamiento del cliente.
-    Recibe como parámetro un arreglo de objetos con la siguiente estructura:
-      interface Response {
-        response: [
-            {
-                categoryCode: number, // codigo de categoria puede ser 1, 2
-                category: string, // nombre de la categoria
-                path: string // path de la imagen
-            },
-            ...
-        ],
-    }
-      `,
+    description:
+      "Genera una rutina de entrenamiento para el cliente basada en las categorías de imágenes proporcionadas.",
     parameters: {
       type: "object",
       properties: {
@@ -24,20 +13,19 @@ const routineGeneratorSchema = {
             type: "object",
             properties: {
               categoryCode: {
-                type: "string",
-                description:
-                  "Corresponde al código de la categoría de la imagen.",
+                type: "number",
+                description: "Código de la categoría de la imagen.",
               },
               category: {
                 type: "string",
-                description:
-                  "Corresponde al nombre de la categoría de la imagen.",
+                description: "Nombre de la categoría de la imagen.",
               },
               path: {
                 type: "string",
-                description: "Corresponde a la ruta de la imagen.",
+                description: "Ruta de la imagen.",
               },
             },
+            required: ["categoryCode", "category", "path"],
           },
         },
       },

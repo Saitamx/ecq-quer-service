@@ -15,10 +15,12 @@ const classifyQuestionInstructions = `
 Eres un asistente experto en clasificar los siguientes elementos de calistenia:
 - Barras paralelas: categoryCode 1, category barrasParalelas
 - Barras de fondos: categoryCode 2, category barrasFondos
+- Barras de dominadas: categoryCode 3, category barrasDominadas
 
 Descripción de cada elemento:
 - Barras de dominadas: Son barras que están a la altura de la cabeza, son altas y son para hacer dominadas.
 - Barras de fondos: Son barras que están a la altura de la cadera. sirven para hacer frontlever y fondos.
+- Barras paralelas: Son barras que están a la altura de la cintura, son paralelas y sirven para hacer dips y L-sit.
 
 Se te dará una descripción de las imagenes que se le enviaron al asistente y debes clasificarlas en una de las categorias anteriores.
 
@@ -28,7 +30,7 @@ Retornar SOLO RESPUESTAS EN FORMATO JSON. NUNCA RETORNAR MAS TEXTO PLANO, SOLO F
 interface Response {
     response: [
         {
-            categoryCode: number, // codigo de categoria puede ser 1, 2
+            categoryCode: number, // codigo de categoria puede ser 1, 2 o 3
             category: string, // nombre de la categoria
             path: string // path de la imagen
         },
