@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Xicam</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/react/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script
+      src="https://cdn.socket.io/4.7.2/socket.io.min.js"
+      integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+    <style>
+      body {
+        font-family: "Open Sans", sans-serif;
+      }
+      .chat-box-expanded {
+        height: 80vh; /* Maximizado para móviles */
+      }
+
+      @media (min-width: 1024px) {
+        .chat-box-expanded {
+          height: 50vh;
+        }
+      }
+
+      #app {
+        width: 100%;
+        max-width: 100%;
+      }
+      .description {
+        text-align: center;
+        color: #f3f4f6;
+        margin-bottom: 20px;
+      }
+      .description span {
+        display: inline-block;
+        margin: 0 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+      .message {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 5px;
+      }
+      .message.user {
+        justify-content: flex-start;
+      }
+      .loading {
+        text-align: center;
+        color: #9ca3af;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-900 text-white">
+    <div id="app"></div>
+
+    <script type="text/babel">
+      const socket = io();
+      function App() {
+        const [currentInput, setCurrentInput] = React.useState("");
+        const [messages, setMessages] = React.useState([]);
+        const [isLoading, setIsLoading] = React.useState(false);
+
+        React.useEffect(() => {
+          const handleIncomingMessage = (data) => {
+            console.log("data", data);
+
+            setIsLoading(false);
+            setMessages((prevMessages) => [...prevMessages, data]);
+          };
+
+          socket.on("message", handleIncomingMessage);
+
+          return () => {
+            socket.off("message", handleIncomingMessage);
+            socket.disconnect();
+          };
+        }, []);
+
+        const sendMessage = () => {
+          if (currentInput.trim() !== "") {
+            setIsLoading(true);
+            socket.emit("message", { message: currentInput, from: "user" });
+            setMessages((prevMessages) => [
+              ...prevMessages,
+              { message: currentInput, from: "user" },
+            ]);
+            setCurrentInput("");
+          }
+        };
+
+        return (
+          <div className="flex flex-col h-screen justify-center items-center">
+            <h2 className="text-2xl font-semibold mb-2">
+              ¿En qué puedo ayudarte?
+            </h2>
+            <p className="mb-4">
+              Primera tienda de vestuario potenciada por inteligencia
+              artificial. Todo el flujo de atención puede ser gestionado aquí.
+            </p>
+            <div
+              id="chat-section"
+              className="bg-gray-800 p-4 rounded-xl shadow-xl w-full"
+            >
+              <div
+                id="chat-box"
+                className="border p-2 mb-2 overflow-y-scroll bg-gray-700 rounded chat-box-expanded"
+              >
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`message ${
+                      message.from === "user" ? "user" : ""
+                    }`}
+                  >
+                    <div
+                      className={`p-2 rounded-lg ${
+                        message.from === "user"
+                          ? "bg-purple-600"
+                          : "bg-gray-600"
+                      }`}
+                    >
+                      <p className="text-sm">{message.message}</p>
+                    </div>
+                  </div>
+                ))}
+
+                {isLoading && (
+                  <div className="loading">Cargando respuesta...</div>
+                )}
+              </div>
+              <div className="flex">
+                <input
+                  id="message-input"
+                  type="text"
+                  className="flex-grow p-2 border rounded-l focus:ring focus:ring-purple-200 focus:border-transparent bg-gray-700 text-white"
+                  placeholder="Escribe un mensaje..."
+                  value={currentInput}
+                  onChange={(e) => setCurrentInput(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      sendMessage();
+                    }
+                  }}
+                  autocomplete="off"
+                />
+                <button
+                  id="send-button"
+                  className="bg-purple-600 text-white p-2 rounded-r hover:bg-purple-700 focus:outline-none"
+                  onClick={sendMessage}
+                >
+                  Enviar
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      ReactDOM.render(<App />, document.getElementById("app"));
+    </script>
+    <script src="/socket.io/socket.io.js"></script>
+  </body>
+</html>
